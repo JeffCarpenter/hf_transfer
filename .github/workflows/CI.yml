@@ -16,7 +16,9 @@ jobs:
     - run: |
          sudo apt update && sudo apt install libssl-dev
          pkg-config --libs --cflags openssl
-    - uses: PyO3/maturin-action@v1
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.3
+    - uses: Py3/maturin-action@v1
       with:
         manylinux: auto
         command: build
@@ -54,20 +56,3 @@ jobs:
       with:
         name: wheels
         path: dist
-
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    if: "startsWith(github.ref, 'refs/tags/')"
-    needs: [ macos, windows, linux ]
-    steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: wheels
-      - name: Publish to PyPI
-        uses: PyO3/maturin-action@v1
-        env:
-          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        with:
-          command: upload
-          args: --skip-existing *
